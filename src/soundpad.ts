@@ -54,7 +54,7 @@ interface SPCategoriesResponseType {
 
 class Soundpad {
   private _pipe: net.Socket | null = null
-  clientVersion = ''
+  private dataDriver: ((query: string) => Promise<string>) | null = null
   private readonly connexionPromise: Promise<boolean> | null = null
   private connexionResolveFunction: (value: boolean | PromiseLike<boolean>) => void = () => { }
   isConnected: boolean
@@ -66,37 +66,42 @@ class Soundpad {
     })
   }
 
-  async connect (): Promise<boolean> {
+  async connect (dataDriver: (query: string) => Promise<string> = this.sendQuery): Promise<boolean> {
     return await new Promise((resolve, reject) => {
-      this._pipe = net.createConnection(
-        '//./pipe/sp_remote_control',
-        () => {
-          this.isConnected = true
-          this.connexionResolveFunction(true)
-          resolve(true)
-        }
-      )
+      if (dataDriver === this.sendQuery) {
+        this._pipe = net.createConnection(
+          '//./pipe/sp_remote_control',
+          () => {
+            this.isConnected = true
+            this.connexionResolveFunction(true)
+            resolve(true)
+          }
+        )
 
-      this._pipe.on('error', (error) => {
-        this._pipe = null
-        this.isConnected = false
-        reject(error)
-      })
+        this._pipe.on('error', (error) => {
+          this._pipe = null
+          this.isConnected = false
+          reject(error)
+        })
 
-      this._pipe.on('close', () => {
-        this.isConnected = false
-        this._pipe = null
-      })
+        this._pipe.on('close', () => {
+          this.isConnected = false
+          this._pipe = null
+        })
 
-      this._pipe.on('end', () => {
-        this.isConnected = false
-        this._pipe = null
-      })
+        this._pipe.on('end', () => {
+          this.isConnected = false
+          this._pipe = null
+        })
 
-      this._pipe.on('timeout', () => {
-        this.isConnected = false
-        this._pipe = null
-      })
+        this._pipe.on('timeout', () => {
+          this.isConnected = false
+          this._pipe = null
+        })
+      } else {
+        this.dataDriver = dataDriver
+        resolve(true)
+      }
     })
   }
 
@@ -118,6 +123,9 @@ class Soundpad {
   }
 
   async sendQuery (query: string): Promise<string> {
+    if (this.dataDriver !== null && typeof this.dataDriver === 'function') {
+      return await this.dataDriver(query)
+    }
     if (this._pipe === null) {
       throw new Error('Please connect the pipe before sending a message')
     }
@@ -529,15 +537,6 @@ class Soundpad {
   }
 
   /**
-   * @return {Promise<boolean>} true if this client class uses the same remote control interface
-   * version as Soundpad.
-   */
-  public async isCompatible (): Promise<boolean> {
-    this.clientVersion = await this.getRemoteControlVersion()
-    return packageJson.version === this.clientVersion
-  }
-
-  /**
    * @return {boolean} true if Soundpad is running and the remote control interface is accessible.
    */
   public async isAlive (): Promise<boolean> {
@@ -683,6 +682,6 @@ class Soundpad {
   }
 }
 
-const soundpad = new Soundpad()
+// const soundpad = new Soundpad()
 
-export default soundpad
+export default Soundpad
