@@ -6,7 +6,7 @@ import { exec, execSync } from 'child_process'
  */
 export function getSoundpadPath (): string | null {
   // Send exception if the OS is not windows
-  if (process.platform !== 'win32') throw new Error('This function is only available on Windows')
+  if (process.platform !== 'win32') { throw new Error('This function is only available on Windows') }
 
   try {
     // Returns multiple lines including the path: `    (Default)    REG_SZ    "C:\Program Files\Soundpad\Soundpad.exe" -c "%1"`
@@ -31,16 +31,17 @@ export async function openSoundpad (): Promise<void> {
  * Wait for Soundpad's named pipe (`//./pipe/sp_remote_control`) to be created
  */
 export async function waitForPipe (): Promise<void> {
-  return await new Promise(resolve => {
+  return await new Promise((resolve) => {
     const checkInterval = setInterval(() => {
-      const pipe = net.createConnection(
-        '//./pipe/sp_remote_control',
-        () => {
+      const pipe = net
+        .createConnection('//./pipe/sp_remote_control', () => {
           clearInterval(checkInterval)
           pipe.end()
           resolve()
-        }
-      ).on('error', () => { /* Ignore error */ })
+        })
+        .on('error', () => {
+          /* Ignore error */
+        })
     }, 100)
   })
 }
@@ -50,21 +51,22 @@ export async function waitForPipe (): Promise<void> {
  */
 export async function isSoundpadOpened (checkPipe = true): Promise<boolean> {
   // Send exception if the OS is not windows
-  if (process.platform !== 'win32') throw new Error('This function is only available on Windows')
-  const result = execSync('tasklist /FI "IMAGENAME eq Soundpad.exe"').toString()
+  if (process.platform !== 'win32') { throw new Error('This function is only available on Windows') }
+  const result = execSync(
+    'tasklist /FI "IMAGENAME eq Soundpad.exe"'
+  ).toString()
   const isProcessRunning = result.includes('Soundpad.exe')
   if (checkPipe) {
-    const isPipeOpened: boolean = await new Promise(resolve => {
-      const pipe = net.createConnection(
-        '//./pipe/sp_remote_control',
-        () => {
+    const isPipeOpened: boolean = await new Promise((resolve) => {
+      const pipe = net
+        .createConnection('//./pipe/sp_remote_control', () => {
           pipe.end()
           resolve(true)
-        }
-      ).on('error', () => {
-        pipe.end()
-        resolve(false)
-      })
+        })
+        .on('error', () => {
+          pipe.end()
+          resolve(false)
+        })
     })
     return isPipeOpened && isProcessRunning
   }

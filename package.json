@@ -1,6 +1,6 @@
 {
   "name": "soundpad.js",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "An npm package for interacting with Soundpad.",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -14,7 +14,7 @@
     "prepublish": "npm run build && typedoc src/index.ts",
     "prepublishOnly": "npm test && npm run lint",
     "preversion": "npm run lint",
-    "version": "npm run format && git add -A src",
+    "version": "npm run lint:fix && git add -A src",
     "postversion": "git push && git push --tags",
     "semantic-release": "semantic-release"
   },

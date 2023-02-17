@@ -5,7 +5,7 @@ enum PlayStatus {
   STOPPED = 'STOPPED',
   PLAYING = 'PLAYING',
   PAUSED = 'PAUSED',
-  SEEKING = 'SEEKING'
+  SEEKING = 'SEEKING',
 }
 
 interface SoundType {
@@ -53,27 +53,29 @@ class Soundpad {
   private _pipe: net.Socket | null = null
   private dataDriver: ((query: string) => Promise<string>) | null = null
   private readonly connexionPromise: Promise<boolean> | null = null
-  private connexionResolveFunction: (value: boolean | PromiseLike<boolean>) => void = () => { }
+  private connexionResolveFunction: (
+    value: boolean | PromiseLike<boolean>
+  ) => void = () => {}
+
   isConnected: boolean
 
   constructor () {
     this.isConnected = false
-    this.connexionPromise = new Promise(resolve => {
+    this.connexionPromise = new Promise((resolve) => {
       this.connexionResolveFunction = resolve
     })
   }
 
-  async connect (dataDriver: (query: string) => Promise<string> = this.sendQuery): Promise<boolean> {
+  async connect (
+    dataDriver: (query: string) => Promise<string> = this.sendQuery
+  ): Promise<boolean> {
     return await new Promise((resolve, reject) => {
       if (dataDriver === this.sendQuery) {
-        this._pipe = net.createConnection(
-          '//./pipe/sp_remote_control',
-          () => {
-            this.isConnected = true
-            this.connexionResolveFunction(true)
-            resolve(true)
-          }
-        )
+        this._pipe = net.createConnection('//./pipe/sp_remote_control', () => {
+          this.isConnected = true
+          this.connexionResolveFunction(true)
+          resolve(true)
+        })
 
         this._pipe.on('error', (error) => {
           this._pipe = null
@@ -108,11 +110,13 @@ class Soundpad {
 
   private isSuccess (response: string): boolean
   private isSuccess (response: Promise<string>): Promise<boolean>
-  private isSuccess (response: Promise<string> | string): Promise<boolean> | boolean {
+  private isSuccess (
+    response: Promise<string> | string
+  ): Promise<boolean> | boolean {
     if (!(response instanceof Promise)) {
       return response.startsWith('R-200')
     }
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       void response.then((awaitedResponse) => {
         resolve(awaitedResponse.toString().startsWith('R-200'))
       })
@@ -144,7 +148,7 @@ class Soundpad {
         response
       )) as SPSoundlistResponseType
 
-      return parsed.Soundlist.Sound.map(sound => sound.$)
+      return parsed.Soundlist.Sound.map((sound) => sound.$)
     }
   }
 
@@ -158,8 +162,13 @@ class Soundpad {
    * @param {boolean} withIcons base64 encoded PNGs
    * @return {Promise<CategoryType[]>} category list
    */
-  public async getCategoriesJSON (withSounds: boolean, withIcons: boolean): Promise<CategoryType[]> {
-    const response = await this.sendQuery(`GetCategories(${withSounds}, ${withIcons})`)
+  public async getCategoriesJSON (
+    withSounds: boolean,
+    withIcons: boolean
+  ): Promise<CategoryType[]> {
+    const response = await this.sendQuery(
+      `GetCategories(${withSounds}, ${withIcons})`
+    )
     if (response.startsWith('R')) {
       console.error(response)
     }
@@ -168,7 +177,7 @@ class Soundpad {
         response
       )) as SPCategoriesResponseType
 
-      return parsed.Categories.Category.map(category => category.$)
+      return parsed.Categories.Category.map((category) => category.$)
     }
 
     return []
@@ -183,8 +192,14 @@ class Soundpad {
    * @param {boolean} withIcons base64 encoded PNGs
    * @return {Promise<CategoryType | null>} category list
    */
-  public async getCategoryJSON (categoryIndex: number, withSounds: boolean, withIcons: boolean): Promise<CategoryType | null> {
-    const response = await this.sendQuery(`GetCategory(${categoryIndex}, ${withSounds}, ${withIcons})`)
+  public async getCategoryJSON (
+    categoryIndex: number,
+    withSounds: boolean,
+    withIcons: boolean
+  ): Promise<CategoryType | null> {
+    const response = await this.sendQuery(
+      `GetCategory(${categoryIndex}, ${withSounds}, ${withIcons})`
+    )
     if (response.startsWith('R')) {
       console.error(response)
       return null
@@ -201,7 +216,7 @@ class Soundpad {
       if (withSounds && parsed.Categories.Category[0].Sound !== undefined) {
         return {
           ...returnedObject,
-          sounds: parsed.Categories.Category[0].Sound.map(sound => sound.$)
+          sounds: parsed.Categories.Category[0].Sound.map((sound) => sound.$)
         }
       }
 
@@ -233,12 +248,24 @@ class Soundpad {
    * @param {boolean} captureLine set to true to play on microphone so others hear it.
    * @return {boolean} true on success
    */
-  public async playSound (index: number, renderLine: boolean, captureLine: boolean): Promise<boolean>
-  public async playSound (index: number, renderLine?: boolean, captureLine?: boolean): Promise<boolean> {
+  public async playSound (
+    index: number,
+    renderLine: boolean,
+    captureLine: boolean
+  ): Promise<boolean>
+  public async playSound (
+    index: number,
+    renderLine?: boolean,
+    captureLine?: boolean
+  ): Promise<boolean> {
     if (renderLine === undefined || captureLine === undefined) {
       return await this.isSuccess(this.sendQuery(`DoPlaySound(${index})`))
     } else {
-      return await this.isSuccess(this.sendQuery(`DoPlaySound(${index}, ${(renderLine ?? true)}, ${captureLine ?? true})`))
+      return await this.isSuccess(
+        this.sendQuery(
+          `DoPlaySound(${index}, ${renderLine ?? true}, ${captureLine ?? true})`
+        )
+      )
     }
   }
 
@@ -305,8 +332,10 @@ class Soundpad {
    * @param {string} searchTerm
    */
   public async search (searchTerm: string): Promise<boolean> {
-    const response: string = await this.sendQuery('DoSearch("' + searchTerm + '")')
-    if (!(response === ('R-200'))) {
+    const response: string = await this.sendQuery(
+      'DoSearch("' + searchTerm + '")'
+    )
+    if (!(response === 'R-200')) {
       console.error(response)
       return false
     }
@@ -407,7 +436,10 @@ class Soundpad {
    * @param {number} toIndex the sound file at toIndex is included in the response
    * @return {string} xml formatted sound list
    */
-  public async getSoundlist (fromIndex?: number, toIndex?: number): Promise<string> {
+  public async getSoundlist (
+    fromIndex?: number,
+    toIndex?: number
+  ): Promise<string> {
     if (toIndex !== undefined && fromIndex !== undefined) {
       return await this.sendQuery(`GetSoundlist(${fromIndex},${toIndex})`)
     } else if (fromIndex !== undefined) {
@@ -469,18 +501,34 @@ class Soundpad {
    * @param insertAtPosition The index to add the sound to.
    * @return {boolean} true on success
    */
-  public async addSound (url: string, index: number, insertAtPosition: number): Promise<boolean>
-  public async addSound (url: string, index?: number, insertAtPosition?: number): Promise<boolean> {
+  public async addSound (
+    url: string,
+    index: number,
+    insertAtPosition: number
+  ): Promise<boolean>
+  public async addSound (
+    url: string,
+    index?: number,
+    insertAtPosition?: number
+  ): Promise<boolean> {
     if (insertAtPosition !== undefined && index !== undefined) {
-      return await this.isSuccess(this.sendQuery(`DoAddSound("${url}", ${index}, ${insertAtPosition})`))
+      return await this.isSuccess(
+        this.sendQuery(`DoAddSound("${url}", ${index}, ${insertAtPosition})`)
+      )
     } else if (index !== undefined) {
-      return await this.isSuccess(this.sendQuery(`DoAddSound("${url}", ${index})`))
+      return await this.isSuccess(
+        this.sendQuery(`DoAddSound("${url}", ${index})`)
+      )
     }
     return await this.isSuccess(this.sendQuery(`DoAddSound("${url}")`))
   }
 
-  public async removeSelectedEntries (removeOnDiskToo = false): Promise<boolean> {
-    return await this.isSuccess(this.sendQuery(`DoRemoveSelectedEntries(${removeOnDiskToo})`))
+  public async removeSelectedEntries (
+    removeOnDiskToo = false
+  ): Promise<boolean> {
+    return await this.isSuccess(
+      this.sendQuery(`DoRemoveSelectedEntries(${removeOnDiskToo})`)
+    )
   }
 
   /**
@@ -553,11 +601,18 @@ class Soundpad {
   }
 
   public async playPreviouslyPlayedSound (): Promise<boolean> {
-    return await this.isSuccess(this.sendQuery('DoPlayPreviouslyPlayedSound()'))
+    return await this.isSuccess(
+      this.sendQuery('DoPlayPreviouslyPlayedSound()')
+    )
   }
 
-  public async addCategory (name: string, parentCategoryIndex = -1): Promise<boolean> {
-    return await this.isSuccess(this.sendQuery(`DoAddCategory("${name}", ${parentCategoryIndex})`))
+  public async addCategory (
+    name: string,
+    parentCategoryIndex = -1
+  ): Promise<boolean> {
+    return await this.isSuccess(
+      this.sendQuery(`DoAddCategory("${name}", ${parentCategoryIndex})`)
+    )
   }
 
   /**
@@ -594,7 +649,9 @@ class Soundpad {
    * @return {Promise<boolean>} true on success
    */
   public async selectCategory (categoryIndex: number): Promise<boolean> {
-    return await this.isSuccess(this.sendQuery(`DoSelectCategory(${categoryIndex})`))
+    return await this.isSuccess(
+      this.sendQuery(`DoSelectCategory(${categoryIndex})`)
+    )
   }
 
   public async selectPreviousCategory (): Promise<boolean> {
@@ -613,7 +670,9 @@ class Soundpad {
    * @return {Promise<boolean>} true on success
    */
   public async removeCategory (categoryIndex: number): Promise<boolean> {
-    return await this.isSuccess(this.sendQuery(`DoRemoveCategory(${categoryIndex})`))
+    return await this.isSuccess(
+      this.sendQuery(`DoRemoveCategory(${categoryIndex})`)
+    )
   }
 
   /**
@@ -623,8 +682,13 @@ class Soundpad {
    * @param {boolean} withIcons base64 encoded PNGs
    * @return {Promise<string>} xml formatted category list
    */
-  public async getCategories (withSounds: boolean, withIcons: boolean): Promise<string> {
-    const response: string = await this.sendQuery(`GetCategories(${withSounds}, ${withIcons})`)
+  public async getCategories (
+    withSounds: boolean,
+    withIcons: boolean
+  ): Promise<string> {
+    const response: string = await this.sendQuery(
+      `GetCategories(${withSounds}, ${withIcons})`
+    )
     if (response.startsWith('R')) {
       console.error(response)
     }
@@ -640,8 +704,14 @@ class Soundpad {
    * @param {boolean} withIcons base64 encoded PNG
    * @return {Promise<string>} xml formatted category list
    */
-  public async getCategory (categoryIndex: number, withSounds: boolean, withIcons: boolean): Promise<string> {
-    const response: string = await this.sendQuery(`GetCategory(${categoryIndex}, ${withSounds}, ${withIcons})`)
+  public async getCategory (
+    categoryIndex: number,
+    withSounds: boolean,
+    withIcons: boolean
+  ): Promise<string> {
+    const response: string = await this.sendQuery(
+      `GetCategory(${categoryIndex}, ${withSounds}, ${withIcons})`
+    )
     if (response.startsWith('R')) {
       console.error(response)
     }
@@ -657,8 +727,17 @@ class Soundpad {
    * @param {boolean} captureLine set to true to play on microphone so others hear it.
    * @return {Promise<boolean>} true on success
    */
-  public async playSoundFromCategory (categoryIndex: number, soundIndex: number, renderLine: boolean, captureLine: boolean): Promise<boolean> {
-    return await this.isSuccess(this.sendQuery(`DoPlaySoundFromCategory(${categoryIndex}, ${soundIndex}, ${renderLine}, ${captureLine})`))
+  public async playSoundFromCategory (
+    categoryIndex: number,
+    soundIndex: number,
+    renderLine: boolean,
+    captureLine: boolean
+  ): Promise<boolean> {
+    return await this.isSuccess(
+      this.sendQuery(
+        `DoPlaySoundFromCategory(${categoryIndex}, ${soundIndex}, ${renderLine}, ${captureLine})`
+      )
+    )
   }
 
   /**
@@ -670,7 +749,10 @@ class Soundpad {
    * @param pollInterval The interval to poll the status (default: 100ms)
    * @returns A promise that resolves when the status is reached
    */
-  async waitForStatus (status = PlayStatus.STOPPED, pollInterval = 100): Promise<void> {
+  async waitForStatus (
+    status = PlayStatus.STOPPED,
+    pollInterval = 100
+  ): Promise<void> {
     return await new Promise((resolve) => {
       const interval = setInterval(async () => {
         const status = await this.getPlayStatus()
