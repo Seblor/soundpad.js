@@ -104,8 +104,17 @@ class Soundpad {
     this._pipe?.end()
   }
 
-  private async isSuccess (response: string | Promise<string>): Promise<boolean> {
-    return (await response).toString().startsWith('R-200')
+  private isSuccess (response: string): boolean
+  private isSuccess (response: Promise<string>): Promise<boolean>
+  private isSuccess (response: Promise<string> | string): Promise<boolean> | boolean {
+    if (!(response instanceof Promise)) {
+      return response.startsWith('R-200')
+    }
+    return new Promise(resolve => {
+      void response.then((awaitedResponse) => {
+        resolve(awaitedResponse.toString().startsWith('R-200'))
+      })
+    })
   }
 
   async sendQuery (query: string): Promise<string> {
