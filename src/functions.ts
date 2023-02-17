@@ -1,9 +1,11 @@
 import net from 'net'
 import { exec, execSync } from 'child_process'
 
-// Run the command "REG QUERY HKEY_CLASSES_ROOT\Soundpad\shell\open\command"
+/**
+ * Get the path of the soundpad exe file or null if it could not be found
+ */
 export function getSoundpadPath (): string | null {
-  // Send exception if the Os is not windows
+  // Send exception if the OS is not windows
   if (process.platform !== 'win32') throw new Error('This function is only available on Windows')
 
   try {
@@ -25,8 +27,10 @@ export async function openSoundpad (): Promise<void> {
   await waitForPipe()
 }
 
+/**
+ * Wait for Soundpad's named pipe (`//./pipe/sp_remote_control`) to be created
+ */
 export async function waitForPipe (): Promise<void> {
-  // Wait for pipe to be created
   return await new Promise(resolve => {
     const checkInterval = setInterval(() => {
       const pipe = net.createConnection(
@@ -45,6 +49,8 @@ export async function waitForPipe (): Promise<void> {
  * Check if there is a process of the soundpad exe file running
  */
 export async function isSoundpadOpened (checkPipe = true): Promise<boolean> {
+  // Send exception if the OS is not windows
+  if (process.platform !== 'win32') throw new Error('This function is only available on Windows')
   const result = execSync('tasklist /FI "IMAGENAME eq Soundpad.exe"').toString()
   const isProcessRunning = result.includes('Soundpad.exe')
   if (checkPipe) {
