@@ -1,8 +1,5 @@
 import net from 'net'
 import xml from 'xml2js'
-// Disabling eslint rule for resolving package.json during build
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const packageJson = require('../package.json')
 
 enum PlayStatus {
   STOPPED = 'STOPPED',
@@ -179,7 +176,7 @@ class Soundpad {
 
   /**
    * Get a category identified by its index. Use
-   * {@link #getCategoriesJSON(boolean, boolean)} to get the index.
+   * {@link getCategoriesJSON} to get the index.
    *
    * @param {number} categoryIndex
    * @param {boolean} withSounds includes all sound entries of each category into the response
@@ -223,19 +220,20 @@ class Soundpad {
   /**
    * Play a sound by index.
    *
-   * @param {number} index Get the index by calling {@link #getSoundlist()} first.
+   * @param {number} index Get the index by calling {@link getSoundlist} first.
    * @return {boolean} true on success
    */
   public async playSound (index: number): Promise<boolean>
 
   /**
-   * Extends {@link #playSound(index: number)} by the ability to determine on which lines the sound shall be played.
+   * Play a sound by index.
    *
-   * @param {number} index Get the index by calling {@link #getSoundlist()} first.
+   * @param {number} index Get the index by calling {@link getSoundlist} first.
    * @param {boolean} renderLine set to true to play on speakers so you hear it.
    * @param {boolean} captureLine set to true to play on microphone so others hear it.
    * @return {boolean} true on success
    */
+  public async playSound (index: number, renderLine: boolean, captureLine: boolean): Promise<boolean>
   public async playSound (index: number, renderLine?: boolean, captureLine?: boolean): Promise<boolean> {
     if (renderLine === undefined || captureLine === undefined) {
       return await this.isSuccess(this.sendQuery(`DoPlaySound(${index})`))
@@ -254,7 +252,7 @@ class Soundpad {
   }
 
   /**
-   * @see #playPreviousSound()
+   * @see playPreviousSound()
    */
   public async playNextSound (): Promise<boolean> {
     return await this.isSuccess(this.sendQuery('DoPlayNextSound()'))
@@ -331,7 +329,7 @@ class Soundpad {
   }
 
   /**
-   * @see #selectPreviousHit()
+   * @see selectPreviousHit()
    */
   public async selectNextHit (): Promise<boolean> {
     return await this.isSuccess(this.sendQuery('DoSelectNextHit()'))
@@ -403,7 +401,7 @@ class Soundpad {
   /**
    * Get a section of the sound list.
    *
-   * @see #getSoundlist()
+   * @see getSoundlist()
    *
    * @param {number} fromIndex starts with 1
    * @param {number} toIndex the sound file at toIndex is included in the response
@@ -451,14 +449,16 @@ class Soundpad {
 
   /**
    * Adds a sound to the sound list.
-   * @param url
+   * @param url full path and file name, e.g. C:\mysounds\sound.mp3
+   * @return {boolean} true on success
    */
   public async addSound (url: string): Promise<boolean>
 
   /**
    * Adds a sound to the sound list.
-   * @param url
+   * @param url full path and file name, e.g. C:\mysounds\sound.mp3
    * @param index The index to add the sound to in the default category.
+   * @return {boolean} true on success
    */
   public async addSound (url: string, index?: number): Promise<boolean>
 
@@ -469,6 +469,7 @@ class Soundpad {
    * @param insertAtPosition The index to add the sound to.
    * @return {boolean} true on success
    */
+  public async addSound (url: string, index: number, insertAtPosition: number): Promise<boolean>
   public async addSound (url: string, index?: number, insertAtPosition?: number): Promise<boolean> {
     if (insertAtPosition !== undefined && index !== undefined) {
       return await this.isSuccess(this.sendQuery(`DoAddSound("${url}", ${index}, ${insertAtPosition})`))
@@ -587,7 +588,7 @@ class Soundpad {
 
   /**
    * Select the category identified by its index. Use
-   * {@link #getCategories(boolean, boolean)} to get the index.
+   * {@link getCategories} to get the index.
    *
    * @param {number} categoryIndex The index of the category to be selected.
    * @return {Promise<boolean>} true on success
@@ -606,7 +607,7 @@ class Soundpad {
 
   /**
    * Remove a category identified by its index. Use
-   * {@link #getCategories(boolean, boolean)} to get the index.
+   * {@link getCategories} to get the index.
    *
    * @param {number} categoryIndex The index of the category to be removed.
    * @return {Promise<boolean>} true on success
@@ -632,7 +633,7 @@ class Soundpad {
 
   /**
    * Get a category identified by its index. Use
-   * {@link #getCategories(boolean, boolean)} to get the index.
+   * {@link getCategories} to get the index.
    *
    * @param {number} categoryIndex
    * @param {boolean} withSounds includes all sound entries associated to that category
@@ -650,8 +651,8 @@ class Soundpad {
   /**
    * Let Soundpad play a sound from a particular category.
    *
-   * @param {number} categoryIndex set to -1 to play a sound from the currently selected category or use {@link #getCategories(boolean, boolean)} to find the index of a category.
-   * @param {number} soundIndex it's not the index as used in {@link #playSound(int)}, but the position in the category, e.g. 5 = 5th sound in the category.
+   * @param {number} categoryIndex set to -1 to play a sound from the currently selected category or use {@link getCategories} to find the index of a category.
+   * @param {number} soundIndex it's not the index as used in {@link playSound}, but the position in the category, e.g. 5 = 5th sound in the category.
    * @param {boolean} renderLine set to true to play on speakers so you hear it.
    * @param {boolean} captureLine set to true to play on microphone so others hear it.
    * @return {Promise<boolean>} true on success

@@ -9,26 +9,25 @@ An npm package for interacting with Soundpad
 # Usage
 
 ```js
-import Soundpad from 'soundpad.js';
-import { getSoundpadPath, openSoundpad } from 'soundpad.js';
+import Soundpad, { getSoundpadPath, openSoundpad } from './';
+
+const soundpad = new Soundpad()
 
 console.log(getSoundpadPath())
 
 async function run () {
   await openSoundpad()
 
-  await Soundpad.connect()
+  await soundpad.connect()
 
-  await Soundpad.playSound(1)
+  await soundpad.playSound(1)
 
-  Soundpad.disconnect()
+  soundpad.disconnect()
 }
 
 run()
 ```
 
 # Notes
-
-The module exports a singleton, so you can just require it and use it as an instance of a class.
 
 This package is mainly a porting of https://www.leppsoft.com/soundpad/files/rc/SoundpadRemoteControl.java to Typescript, with some utility functions added.
