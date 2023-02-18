@@ -166,16 +166,18 @@ class Soundpad {
   /**
    * Get the category tree.
    *
-   * @param {boolean} withSounds includes all sound entries of each category into the response
-   * @param {boolean} withIcons base64 encoded PNGs
+   * @param {boolean} [withSounds=false] includes all sound entries of each category into the response
+   * @param {boolean} [withIcons=false] base64 encoded PNGs
    * @return {Promise<CategoryType[]>} category list
    */
   public async getCategoriesJSON (
-    withSounds: boolean,
-    withIcons: boolean
+    withSounds = false,
+    withIcons = false
   ): Promise<CategoryType[]> {
     const response = await this.sendQuery(
-      `GetCategories(${withSounds}, ${withIcons})`
+      withSounds || withIcons
+        ? `GetCategories(${withSounds}, ${withIcons})`
+        : 'GetCategories()'
     )
     if (response.startsWith('R')) {
       throw new Error(response)
@@ -687,16 +689,18 @@ class Soundpad {
   /**
    * Get the category tree.
    *
-   * @param {boolean} withSounds includes all sound entries of each category into the response
-   * @param {boolean} withIcons base64 encoded PNGs
+   * @param {boolean} [withSounds=false] includes all sound entries of each category into the response
+   * @param {boolean} [withIcons=false] base64 encoded PNGs
    * @return {Promise<string>} xml formatted category list
    */
   public async getCategories (
-    withSounds: boolean,
-    withIcons: boolean
+    withSounds = false,
+    withIcons = false
   ): Promise<string> {
     const response: string = await this.sendQuery(
-      `GetCategories(${withSounds}, ${withIcons})`
+      withSounds || withIcons
+        ? `GetCategories(${withSounds}, ${withIcons})`
+        : 'GetCategories()'
     )
     if (response.startsWith('R')) {
       console.error(response)
