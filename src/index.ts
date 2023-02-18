@@ -1,5 +1,5 @@
-import soundpad from './soundpad'
+import soundpad from './soundpad.js'
 
 export default soundpad
 
-export * from './functions'
+export * from './functions.js'
