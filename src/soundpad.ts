@@ -1,5 +1,15 @@
 import net from 'net'
-import xml from 'xml2js'
+import { XMLParser } from 'fast-xml-parser'
+
+const parser = new XMLParser({
+  allowBooleanAttributes: true,
+  attributesGroupName: '$',
+  alwaysCreateTextNode: false,
+  trimValues: true,
+  parseAttributeValue: true,
+  ignoreAttributes: false,
+  attributeNamePrefix: ''
+})
 
 enum PlayStatus {
   STOPPED = 'STOPPED',
@@ -144,9 +154,7 @@ class Soundpad {
   async getSoundListJSON (): Promise<SoundType[] | undefined> {
     const response = await this.sendQuery('GetSoundlist()')
     if (response !== undefined) {
-      const parsed = (await xml.parseStringPromise(
-        response
-      )) as SPSoundlistResponseType
+      const parsed = parser.parse(response) as SPSoundlistResponseType
 
       return parsed.Soundlist.Sound.map((sound) => sound.$)
     }
@@ -170,14 +178,18 @@ class Soundpad {
       `GetCategories(${withSounds}, ${withIcons})`
     )
     if (response.startsWith('R')) {
-      console.error(response)
+      throw new Error(response)
     }
     if (response !== undefined) {
-      const parsed = (await xml.parseStringPromise(
-        response
-      )) as SPCategoriesResponseType
+      const parsed = parser.parse(response) as SPCategoriesResponseType
 
-      return parsed.Categories.Category.map((category) => category.$)
+      return parsed.Categories.Category.map((category) => {
+        const categoryData = category.$
+        if (withSounds) {
+          categoryData.sounds = category.Sound?.map((sound) => sound.$) ?? []
+        }
+        return categoryData
+      })
     }
 
     return []
@@ -201,13 +213,10 @@ class Soundpad {
       `GetCategory(${categoryIndex}, ${withSounds}, ${withIcons})`
     )
     if (response.startsWith('R')) {
-      console.error(response)
-      return null
+      throw new Error(response)
     }
     if (response !== undefined) {
-      const parsed = (await xml.parseStringPromise(
-        response
-      )) as SPCategoriesResponseType
+      const parsed = parser.parse(response) as SPCategoriesResponseType
 
       const returnedObject = {
         ...parsed.Categories.Category[0].$
@@ -216,7 +225,7 @@ class Soundpad {
       if (withSounds && parsed.Categories.Category[0].Sound !== undefined) {
         return {
           ...returnedObject,
-          sounds: parsed.Categories.Category[0].Sound.map((sound) => sound.$)
+          sounds: parsed.Categories.Category[0].Sound?.map((sound) => sound.$) ?? []
         }
       }
 
