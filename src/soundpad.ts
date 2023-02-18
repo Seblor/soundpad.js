@@ -175,9 +175,7 @@ class Soundpad {
     withIcons = false
   ): Promise<CategoryType[]> {
     const response = await this.sendQuery(
-      withSounds || withIcons
-        ? `GetCategories(${withSounds}, ${withIcons})`
-        : 'GetCategories()'
+      `GetCategories(${withSounds}, ${withIcons})`
     )
     if (response.startsWith('R')) {
       throw new Error(response)
@@ -698,9 +696,7 @@ class Soundpad {
     withIcons = false
   ): Promise<string> {
     const response: string = await this.sendQuery(
-      withSounds || withIcons
-        ? `GetCategories(${withSounds}, ${withIcons})`
-        : 'GetCategories()'
+      `GetCategories(${withSounds}, ${withIcons})`
     )
     if (response.startsWith('R')) {
       console.error(response)
