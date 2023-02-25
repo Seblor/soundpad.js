@@ -18,7 +18,7 @@ enum PlayStatus {
   SEEKING = 'SEEKING',
 }
 
-interface SoundType {
+export interface SoundType {
   index: number
   url: string
   artist: string
@@ -39,7 +39,7 @@ interface SPSoundlistResponseType {
 }
 
 // Soundpad's native response to category query (after XML -> JS conversion)
-interface CategoryType {
+export interface CategoryType {
   index: number
   type?: number
   name: string
