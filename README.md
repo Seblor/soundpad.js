@@ -4,7 +4,7 @@ An npm package for interacting with Soundpad
 
 # Install
 
-`npm install --save soundpad`
+`npm install --save soundpad.js`
 
 # Usage
 
