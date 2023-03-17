@@ -9,7 +9,7 @@ An npm package for interacting with Soundpad
 # Usage
 
 ```js
-import Soundpad, { getSoundpadPath, openSoundpad } from './';
+import Soundpad, { getSoundpadPath, openSoundpad } from 'soundpad.js';
 
 const soundpad = new Soundpad()
 
