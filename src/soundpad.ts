@@ -11,14 +11,14 @@ const parser = new XMLParser({
   attributeNamePrefix: ''
 })
 
-enum PlayStatus {
+export enum PlayStatus {
   STOPPED = 'STOPPED',
   PLAYING = 'PLAYING',
   PAUSED = 'PAUSED',
   SEEKING = 'SEEKING',
 }
 
-export interface SoundType {
+export interface Sound {
   index: number
   url: string
   artist: string
@@ -30,30 +30,31 @@ export interface SoundType {
 }
 
 // Soundpad's native response to sounds list query (after XML -> JS conversion)
-interface SPSoundlistResponseType {
+interface SPSoundlistResponse {
   Soundlist: {
     Sound: Array<{
-      $: SoundType
+      $: Sound
     }>
   }
 }
 
 // Soundpad's native response to category query (after XML -> JS conversion)
-export interface CategoryType {
+export interface Category {
   index: number
   type?: number
   name: string
   hidden?: boolean
-  sounds?: SoundType[]
+  sounds?: Sound[]
+  icon?: string
 }
 
 // Soundpad's native response to categories query (after XML -> JS conversion)
-interface SPCategoriesResponseType {
+interface SPCategoriesResponse {
   Categories: {
     Category: Array<{
-      $: CategoryType
+      $: Category
       Sound: Array<{
-        $: SoundType
+        $: Sound
       }>
     }>
   }
@@ -62,17 +63,17 @@ interface SPCategoriesResponseType {
 class Soundpad {
   private _pipe: net.Socket | null = null
   private dataDriver: ((query: string) => Promise<string>) | null = null
-  private readonly connexionPromise: Promise<boolean> | null = null
-  private connexionResolveFunction: (
+  readonly connectionAwaiter: Promise<boolean> | null = null
+  private connectionResolveFunction: (
     value: boolean | PromiseLike<boolean>
-  ) => void = () => {}
+  ) => void = () => { }
 
   isConnected: boolean
 
   constructor () {
     this.isConnected = false
-    this.connexionPromise = new Promise((resolve) => {
-      this.connexionResolveFunction = resolve
+    this.connectionAwaiter = new Promise((resolve) => {
+      this.connectionResolveFunction = resolve
     })
   }
 
@@ -83,7 +84,7 @@ class Soundpad {
       if (dataDriver === this.sendQuery) {
         this._pipe = net.createConnection('//./pipe/sp_remote_control', () => {
           this.isConnected = true
-          this.connexionResolveFunction(true)
+          this.connectionResolveFunction(true)
           resolve(true)
         })
 
@@ -109,6 +110,8 @@ class Soundpad {
         })
       } else {
         this.dataDriver = dataDriver
+        this.isConnected = true
+        this.connectionResolveFunction(true)
         resolve(true)
       }
     })
@@ -141,7 +144,7 @@ class Soundpad {
       throw new Error('Please connect the pipe before sending a message')
     }
 
-    await this.connexionPromise
+    await this.connectionAwaiter
 
     return await new Promise((resolve) => {
       this._pipe?.write(query)
@@ -151,48 +154,39 @@ class Soundpad {
     })
   }
 
-  async getSoundListJSON (): Promise<SoundType[] | undefined> {
+  async getSoundListJSON (): Promise<Sound[]> {
     const response = await this.sendQuery('GetSoundlist()')
-    if (response !== undefined) {
-      const parsed = parser.parse(response) as SPSoundlistResponseType
+    const parsed = parser.parse(response) as SPSoundlistResponse
 
-      return parsed.Soundlist.Sound.map((sound) => sound.$)
-    }
+    return parsed.Soundlist.Sound.map((sound) => sound.$)
   }
-
-  // private formatCategory (category: CategoryType): CategoryType {
-  // }
 
   /**
    * Get the category tree.
    *
    * @param {boolean} [withSounds=false] includes all sound entries of each category into the response
    * @param {boolean} [withIcons=false] base64 encoded PNGs
-   * @return {Promise<CategoryType[]>} category list
+   * @return {Promise<Category[]>} category list
    */
   public async getCategoriesJSON (
     withSounds = false,
     withIcons = false
-  ): Promise<CategoryType[]> {
+  ): Promise<Category[]> {
     const response = await this.sendQuery(
       `GetCategories(${withSounds}, ${withIcons})`
     )
     if (response.startsWith('R')) {
       throw new Error(response)
     }
-    if (response !== undefined) {
-      const parsed = parser.parse(response) as SPCategoriesResponseType
+    const parsed = parser.parse(response) as SPCategoriesResponse
 
-      return parsed.Categories.Category.map((category) => {
-        const categoryData = category.$
-        if (withSounds) {
-          categoryData.sounds = category.Sound?.map((sound) => sound.$) ?? []
-        }
-        return categoryData
-      })
-    }
-
-    return []
+    return parsed.Categories.Category.map((category) => {
+      const categoryData = category.$
+      if (withSounds) {
+        categoryData.sounds = category.Sound?.map((sound) => sound.$) ?? []
+      }
+      return categoryData
+    })
   }
 
   /**
@@ -202,37 +196,33 @@ class Soundpad {
    * @param {number} categoryIndex
    * @param {boolean} withSounds includes all sound entries of each category into the response
    * @param {boolean} withIcons base64 encoded PNGs
-   * @return {Promise<CategoryType | null>} category list
+   * @return {Promise<Category | null>} category list
    */
   public async getCategoryJSON (
     categoryIndex: number,
     withSounds: boolean,
     withIcons: boolean
-  ): Promise<CategoryType | null> {
+  ): Promise<Category | null> {
     const response = await this.sendQuery(
       `GetCategory(${categoryIndex}, ${withSounds}, ${withIcons})`
     )
     if (response.startsWith('R')) {
       throw new Error(response)
     }
-    if (response !== undefined) {
-      const parsed = parser.parse(response) as SPCategoriesResponseType
+    const parsed = parser.parse(response) as SPCategoriesResponse
 
-      const returnedObject = {
-        ...parsed.Categories.Category[0].$
-      }
-
-      if (withSounds && parsed.Categories.Category[0].Sound !== undefined) {
-        return {
-          ...returnedObject,
-          sounds: parsed.Categories.Category[0].Sound?.map((sound) => sound.$) ?? []
-        }
-      }
-
-      return returnedObject
+    const returnedObject = {
+      ...parsed.Categories.Category[0].$
     }
 
-    return null
+    if (withSounds && parsed.Categories.Category[0].Sound !== undefined) {
+      return {
+        ...returnedObject,
+        sounds: parsed.Categories.Category[0].Sound?.map((sound) => sound.$) ?? []
+      }
+    }
+
+    return returnedObject
   }
 
   /**
@@ -764,8 +754,8 @@ class Soundpad {
   ): Promise<void> {
     return await new Promise((resolve) => {
       const interval = setInterval(async () => {
-        const status = await this.getPlayStatus()
-        if (status === PlayStatus.STOPPED) {
+        const currentStatus = await this.getPlayStatus()
+        if (currentStatus === status) {
           clearInterval(interval)
           resolve()
         }

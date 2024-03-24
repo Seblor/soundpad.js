@@ -21,13 +21,43 @@
 <a href="#install" id="install" style="color: inherit; text-decoration: none;">
   <h1>Install</h1>
 </a>
-<p><code>npm install --save soundpad</code></p>
+<p><code>npm install --save soundpad.js</code></p>
 
 <a href="#usage" id="usage" style="color: inherit; text-decoration: none;">
   <h1>Usage</h1>
 </a>
-<pre><code class="language-js"><span class="hl-0">import</span><span class="hl-1"> </span><span class="hl-2">Soundpad</span><span class="hl-1">, { </span><span class="hl-2">getSoundpadPath</span><span class="hl-1">, </span><span class="hl-2">openSoundpad</span><span class="hl-1"> } </span><span class="hl-0">from</span><span class="hl-1"> </span><span class="hl-3">&#39;./&#39;</span><span class="hl-1">;</span><br/><br/><span class="hl-4">const</span><span class="hl-1"> </span><span class="hl-5">soundpad</span><span class="hl-1"> = </span><span class="hl-4">new</span><span class="hl-1"> </span><span class="hl-6">Soundpad</span><span class="hl-1">()</span><br/><br/><span class="hl-2">console</span><span class="hl-1">.</span><span class="hl-6">log</span><span class="hl-1">(</span><span class="hl-6">getSoundpadPath</span><span class="hl-1">())</span><br/><br/><span class="hl-4">async</span><span class="hl-1"> </span><span class="hl-4">function</span><span class="hl-1"> </span><span class="hl-6">run</span><span class="hl-1"> () {</span><br/><span class="hl-1">  </span><span class="hl-0">await</span><span class="hl-1"> </span><span class="hl-6">openSoundpad</span><span class="hl-1">()</span><br/><br/><span class="hl-1">  </span><span class="hl-0">await</span><span class="hl-1"> </span><span class="hl-2">soundpad</span><span class="hl-1">.</span><span class="hl-6">connect</span><span class="hl-1">()</span><br/><br/><span class="hl-1">  </span><span class="hl-0">await</span><span class="hl-1"> </span><span class="hl-2">soundpad</span><span class="hl-1">.</span><span class="hl-6">playSound</span><span class="hl-1">(</span><span class="hl-7">1</span><span class="hl-1">)</span><br/><br/><span class="hl-1">  </span><span class="hl-2">soundpad</span><span class="hl-1">.</span><span class="hl-6">disconnect</span><span class="hl-1">()</span><br/><span class="hl-1">}</span><br/><br/><span class="hl-6">run</span><span class="hl-1">()</span>
+
+<a href="#basic-example" id="basic-example" style="color: inherit; text-decoration: none;">
+  <h2>Basic example</h2>
+</a>
+<pre><code class="language-js"><span class="hl-0">import</span><span class="hl-1"> </span><span class="hl-2">Soundpad</span><span class="hl-1">, { </span><span class="hl-2">getSoundpadPath</span><span class="hl-1">, </span><span class="hl-2">openSoundpad</span><span class="hl-1"> } </span><span class="hl-0">from</span><span class="hl-1"> </span><span class="hl-3">&#39;soundpad.js&#39;</span><span class="hl-1">;</span><br/><br/><span class="hl-4">const</span><span class="hl-1"> </span><span class="hl-5">soundpad</span><span class="hl-1"> = </span><span class="hl-4">new</span><span class="hl-1"> </span><span class="hl-6">Soundpad</span><span class="hl-1">()</span><br/><br/><span class="hl-2">console</span><span class="hl-1">.</span><span class="hl-6">log</span><span class="hl-1">(</span><span class="hl-6">getSoundpadPath</span><span class="hl-1">())</span><br/><br/><span class="hl-4">async</span><span class="hl-1"> </span><span class="hl-4">function</span><span class="hl-1"> </span><span class="hl-6">run</span><span class="hl-1"> () {</span><br/><span class="hl-1">  </span><span class="hl-0">await</span><span class="hl-1"> </span><span class="hl-6">openSoundpad</span><span class="hl-1">()</span><br/><br/><span class="hl-1">  </span><span class="hl-0">await</span><span class="hl-1"> </span><span class="hl-2">soundpad</span><span class="hl-1">.</span><span class="hl-6">connect</span><span class="hl-1">()</span><br/><br/><span class="hl-1">  </span><span class="hl-0">await</span><span class="hl-1"> </span><span class="hl-2">soundpad</span><span class="hl-1">.</span><span class="hl-6">playSound</span><span class="hl-1">(</span><span class="hl-7">1</span><span class="hl-1">)</span><br/><br/><span class="hl-1">  </span><span class="hl-2">soundpad</span><span class="hl-1">.</span><span class="hl-6">disconnect</span><span class="hl-1">()</span><br/><span class="hl-1">}</span><br/><br/><span class="hl-6">run</span><span class="hl-1">()</span>
 </code></pre>
+
+<a href="#using-in-the-browser" id="using-in-the-browser" style="color: inherit; text-decoration: none;">
+  <h2>Using in the browser</h2>
+</a>
+<p>If you plan to use this package in the browser (with a custom dataDriver), you may get an error because some functions need Node&#39;s &#39;child_process&#39; module. To fix this, you can import soundpad.js with the secondary entry point <code>soundpad.js/web</code> (which does not export those functions) like in this example:</p>
+<pre><code class="language-js"><span class="hl-0">import</span><span class="hl-1"> </span><span class="hl-2">Soundpad</span><span class="hl-1"> </span><span class="hl-0">from</span><span class="hl-1"> </span><span class="hl-3">&#39;soundpad.js/web&#39;</span><span class="hl-1">;</span><br/><br/><span class="hl-4">const</span><span class="hl-1"> </span><span class="hl-5">soundpad</span><span class="hl-1"> = </span><span class="hl-4">new</span><span class="hl-1"> </span><span class="hl-6">Soundpad</span><span class="hl-1">();</span><br/><br/><span class="hl-2">soundpad</span><span class="hl-1">.</span><span class="hl-6">connect</span><span class="hl-1">((</span><span class="hl-2">query</span><span class="hl-1">) </span><span class="hl-4">=&gt;</span><span class="hl-1"> {</span><br/><span class="hl-1">  </span><span class="hl-0">return</span><span class="hl-1"> </span><span class="hl-6">fetch</span><span class="hl-1">(</span><span class="hl-3">&#39;/api/soundpad/&#39;</span><span class="hl-1">, { </span><span class="hl-2">method:</span><span class="hl-1"> </span><span class="hl-3">&#39;POST&#39;</span><span class="hl-1">, </span><span class="hl-2">body:</span><span class="hl-1"> </span><span class="hl-2">query</span><span class="hl-1"> })</span><br/><span class="hl-1">    .</span><span class="hl-6">then</span><span class="hl-1">((</span><span class="hl-2">data</span><span class="hl-1">) </span><span class="hl-4">=&gt;</span><span class="hl-1"> </span><span class="hl-2">data</span><span class="hl-1">.</span><span class="hl-6">text</span><span class="hl-1">())</span><br/><span class="hl-1">});</span>
+</code></pre>
+
+<a href="#changelog" id="changelog" style="color: inherit; text-decoration: none;">
+  <h1>Changelog</h1>
+</a>
+<p>Changes marked with ❌ are breaking changes</p>
+
+<a href="#200" id="200" style="color: inherit; text-decoration: none;">
+  <h2>2.0.0</h2>
+</a>
+<ul>
+<li>Fixed the <code>Soundpad.waitForStatus()</code> function</li>
+<li>Added a secondary entry point <code>soundpad.js/web</code></li>
+<li>Exporting the <code>PlayStatus</code> enum</li>
+<li>Correctly updating the <code>Soundpad.isConnected</code> property when using a custom dataDriver</li>
+<li>Exposed the previously private property <code>Soundpad.connectionAwaiter</code>, which is a promise that resolves when the connection is established.</li>
+<li>❌ Renamed multiple types to remove the &quot;Type&quot; suffix</li>
+<li>Capitalized the default export for IDE autoimport improvement</li>
+<li>Fixed various return types to remove unattainable <code>undefined</code> results</li>
+</ul>
 
 <a href="#notes" id="notes" style="color: inherit; text-decoration: none;">
   <h1>Notes</h1>
@@ -52,8 +82,17 @@
 <div class="tsd-accordion-details">
 <ul>
 <li class="current selected"><a href="modules.html">soundpad.js</a>
+<ul></ul></li></ul></div></details></nav>
+<nav class="tsd-navigation secondary menu-sticky">
 <ul>
-<li class="tsd-kind-module"><a href="modules/_internal_.html">&lt;internal&gt;</a></li></ul></li></ul></div></details></nav></div></div>
+<li class="tsd-kind-enum"><a href="enums/PlayStatus.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-enum)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6" id="icon-8-path"></rect><path d="M9.45 16V7.24H14.49V8.224H10.518V10.936H14.07V11.908H10.518V15.016H14.49V16H9.45Z" fill="var(--color-text)" id="icon-8-text"></path></svg>Play<wbr/>Status</a></li>
+<li class="tsd-kind-class"><a href="classes/Soundpad.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-class)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6" id="icon-128-path"></rect><path d="M11.898 16.1201C11.098 16.1201 10.466 15.8961 10.002 15.4481C9.53803 15.0001 9.30603 14.3841 9.30603 13.6001V9.64012C9.30603 8.85612 9.53803 8.24012 10.002 7.79212C10.466 7.34412 11.098 7.12012 11.898 7.12012C12.682 7.12012 13.306 7.34812 13.77 7.80412C14.234 8.25212 14.466 8.86412 14.466 9.64012H13.386C13.386 9.14412 13.254 8.76412 12.99 8.50012C12.734 8.22812 12.37 8.09212 11.898 8.09212C11.426 8.09212 11.054 8.22412 10.782 8.48812C10.518 8.75212 10.386 9.13212 10.386 9.62812V13.6001C10.386 14.0961 10.518 14.4801 10.782 14.7521C11.054 15.0161 11.426 15.1481 11.898 15.1481C12.37 15.1481 12.734 15.0161 12.99 14.7521C13.254 14.4801 13.386 14.0961 13.386 13.6001H14.466C14.466 14.3761 14.234 14.9921 13.77 15.4481C13.306 15.8961 12.682 16.1201 11.898 16.1201Z" fill="var(--color-text)" id="icon-128-text"></path></svg>Soundpad</a></li>
+<li class="tsd-kind-interface"><a href="interfaces/Category.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-interface)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6" id="icon-256-path"></rect><path d="M9.51 16V15.016H11.298V8.224H9.51V7.24H14.19V8.224H12.402V15.016H14.19V16H9.51Z" fill="var(--color-text)" id="icon-256-text"></path></svg>Category</a></li>
+<li class="tsd-kind-interface"><a href="interfaces/Sound.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-256-path"></use><use href="#icon-256-text"></use></svg>Sound</a></li>
+<li class="tsd-kind-function"><a href="functions/getSoundpadPath.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-function)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6" id="icon-64-path"></rect><path d="M9.39 16V7.24H14.55V8.224H10.446V11.128H14.238V12.112H10.47V16H9.39Z" fill="var(--color-text)" id="icon-64-text"></path></svg>get<wbr/>Soundpad<wbr/>Path</a></li>
+<li class="tsd-kind-function"><a href="functions/isSoundpadOpened.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-64-path"></use><use href="#icon-64-text"></use></svg>is<wbr/>Soundpad<wbr/>Opened</a></li>
+<li class="tsd-kind-function"><a href="functions/openSoundpad.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-64-path"></use><use href="#icon-64-text"></use></svg>open<wbr/>Soundpad</a></li>
+<li class="tsd-kind-function"><a href="functions/waitForPipe.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-64-path"></use><use href="#icon-64-text"></use></svg>wait<wbr/>For<wbr/>Pipe</a></li></ul></nav></div></div>
 <div class="container tsd-generator">
 <p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></div>
 <div class="overlay"></div><script src="assets/main.js"></script></body></html>
