@@ -1,11 +1,8 @@
 name: "🚀 release"
 
 on:
-  push: 
-    branches:
-      - main
   release:
-    types: [published, edited]
+    types: [published]
 
 jobs:
   release:
