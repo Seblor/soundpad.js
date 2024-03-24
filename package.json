@@ -23,7 +23,6 @@
     "test": "echo \"Tests are not implemented yet\"",
     "doc": "typedoc src/index.ts",
     "prepare": "npm run build",
-    "prepublish": "npm run build",
     "prepublishOnly": "npm test && npm run lint",
     "preversion": "npm run lint",
     "version": "npm run lint:fix && git add -A src",
