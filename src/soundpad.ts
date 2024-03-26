@@ -183,7 +183,10 @@ class Soundpad {
     return parsed.Categories.Category.map((category) => {
       const categoryData = category.$
       if (withSounds) {
-        categoryData.sounds = category.Sound?.map((sound) => sound.$) ?? []
+        if (category.Sound !== undefined) {
+          const soundsArray = Array.isArray(category.Sound) ? category.Sound : [category.Sound] // If there is only one sound, it's not an array
+          categoryData.sounds = soundsArray.map((sound) => sound.$)
+        }
       }
       return categoryData
     })
