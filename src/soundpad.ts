@@ -1,6 +1,8 @@
 import net from 'net'
 import { XMLParser } from 'fast-xml-parser'
 
+const functionFilePath = './functions.js'
+
 const parser = new XMLParser({
   allowBooleanAttributes: true,
   attributesGroupName: '$',
@@ -100,6 +102,12 @@ class Soundpad extends EventTarget {
   async connect (
     dataDriver: (query: string) => Promise<string> = this.sendQuery
   ): Promise<boolean> {
+    if (this.options.startSoundpadOnConnect) {
+      const fcts = await import(/* @vite-ignore */ functionFilePath)
+      if (!(await fcts.isSoundpadOpened() as boolean)) {
+        await fcts.openSoundpad()
+      }
+    }
     return await new Promise((resolve, reject) => {
       if (dataDriver === this.sendQuery) {
         this._pipe = net.createConnection('//./pipe/sp_remote_control', () => {
@@ -124,7 +132,7 @@ class Soundpad extends EventTarget {
 
           if (this.options.autoReconnect) {
             if (this.options.startSoundpadOnConnect) {
-              await (await import('./functions.js')).openSoundpad()
+              await (await import(/* @vite-ignore */ functionFilePath)).openSoundpad()
             }
             this.connectionAwaiter = new Promise((resolve) => {
               this.connectionResolveFunction = resolve
@@ -176,7 +184,7 @@ class Soundpad extends EventTarget {
     }
     if (this._pipe === null) {
       if (this.options.startSoundpadOnConnect) {
-        await (await import('./functions.js')).openSoundpad()
+        await (await import(/* @vite-ignore */ functionFilePath)).openSoundpad()
       } else {
         throw new Error('Please connect the pipe before sending a message')
       }
