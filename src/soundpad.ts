@@ -60,21 +60,41 @@ interface SPCategoriesResponse {
   }
 }
 
-class Soundpad {
+interface Options {
+  autoReconnect: boolean
+  startSoundpadOnConnect: boolean
+}
+
+class Soundpad extends EventTarget {
   private _pipe: net.Socket | null = null
   private dataDriver: ((query: string) => Promise<string>) | null = null
-  readonly connectionAwaiter: Promise<boolean> | null = null
+  connectionAwaiter: Promise<boolean> | null = null
   private connectionResolveFunction: (
     value: boolean | PromiseLike<boolean>
   ) => void = () => { }
 
+  private readonly options: Options = {
+    autoReconnect: false,
+    startSoundpadOnConnect: false
+  }
+
   isConnected: boolean
 
-  constructor () {
+  constructor (options: Partial<Options> = { autoReconnect: false, startSoundpadOnConnect: false }) {
+    super()
     this.isConnected = false
+
+    this.options.autoReconnect = options.autoReconnect ?? this.options.autoReconnect
+    this.options.startSoundpadOnConnect = options.startSoundpadOnConnect ?? this.options.startSoundpadOnConnect
+
     this.connectionAwaiter = new Promise((resolve) => {
       this.connectionResolveFunction = resolve
     })
+  }
+
+  setOptions (options: Partial<Options>): void {
+    this.options.autoReconnect = options.autoReconnect ?? this.options.autoReconnect
+    this.options.startSoundpadOnConnect = options.startSoundpadOnConnect ?? this.options.startSoundpadOnConnect
   }
 
   async connect (
@@ -85,6 +105,8 @@ class Soundpad {
         this._pipe = net.createConnection('//./pipe/sp_remote_control', () => {
           this.isConnected = true
           this.connectionResolveFunction(true)
+          this.dispatchEvent(new Event('connected'))
+
           resolve(true)
         })
 
@@ -94,9 +116,21 @@ class Soundpad {
           reject(error)
         })
 
-        this._pipe.on('close', () => {
+        this._pipe.on('close', async () => {
           this.isConnected = false
           this._pipe = null
+
+          this.dispatchEvent(new Event('close'))
+
+          if (this.options.autoReconnect) {
+            if (this.options.startSoundpadOnConnect) {
+              await (await import('./functions.js')).openSoundpad()
+            }
+            this.connectionAwaiter = new Promise((resolve) => {
+              this.connectionResolveFunction = resolve
+            })
+            void this.connect()
+          }
         })
 
         this._pipe.on('end', () => {
@@ -141,7 +175,11 @@ class Soundpad {
       return await this.dataDriver(query)
     }
     if (this._pipe === null) {
-      throw new Error('Please connect the pipe before sending a message')
+      if (this.options.startSoundpadOnConnect) {
+        await (await import('./functions.js')).openSoundpad()
+      } else {
+        throw new Error('Please connect the pipe before sending a message')
+      }
     }
 
     await this.connectionAwaiter
@@ -337,7 +375,7 @@ class Soundpad {
     const response: string = await this.sendQuery(
       'DoSearch("' + searchTerm + '")'
     )
-    if (!(response === 'R-200')) {
+    if (response !== 'R-200') {
       console.error(response)
       return false
     }
