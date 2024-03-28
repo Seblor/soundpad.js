@@ -1,5 +1,7 @@
 # Soundpad.js
 
+<a href="https://npmjs.org/package/soundpad.js" title="View this project on NPM"><img src="https://img.shields.io/npm/v/soundpad.js.svg" alt="NPM version" /></a>
+
 An npm package for interacting with Soundpad
 
 # Install
