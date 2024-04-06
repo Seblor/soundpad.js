@@ -104,9 +104,7 @@ class Soundpad extends EventTarget {
   ): Promise<boolean> {
     if (this.options.startSoundpadOnConnect) {
       const fcts = await import(/* @vite-ignore */ functionFilePath)
-      if (!(await fcts.isSoundpadOpened() as boolean)) {
-        await fcts.openSoundpad()
-      }
+      await fcts.openSoundpad(true)
     }
     return await new Promise((resolve, reject) => {
       if (dataDriver === this.sendQuery) {
@@ -132,7 +130,7 @@ class Soundpad extends EventTarget {
 
           if (this.options.autoReconnect) {
             if (this.options.startSoundpadOnConnect) {
-              await (await import(/* @vite-ignore */ functionFilePath)).openSoundpad()
+              await (await import(/* @vite-ignore */ functionFilePath)).openSoundpad(true)
             }
             this.connectionAwaiter = new Promise((resolve) => {
               this.connectionResolveFunction = resolve
@@ -184,7 +182,7 @@ class Soundpad extends EventTarget {
     }
     if (this._pipe === null) {
       if (this.options.startSoundpadOnConnect) {
-        await (await import(/* @vite-ignore */ functionFilePath)).openSoundpad()
+        await (await import(/* @vite-ignore */ functionFilePath)).openSoundpad(true)
       } else {
         throw new Error('Please connect the pipe before sending a message')
       }

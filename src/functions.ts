@@ -22,7 +22,8 @@ export function getSoundpadPath (): string | null {
   }
 }
 
-export async function openSoundpad (): Promise<void> {
+export async function openSoundpad (checkBeforeOpen = false): Promise<void> {
+  if (checkBeforeOpen && await isSoundpadOpened(false)) return
   exec(`"${getSoundpadPath()}"`)
   await waitForPipe()
 }
@@ -71,4 +72,9 @@ export async function isSoundpadOpened (checkPipe = true): Promise<boolean> {
     return isPipeOpened && isProcessRunning
   }
   return isProcessRunning
+}
+
+export async function closeSoundpad (): Promise<void> {
+  exec('taskkill /FI "IMAGENAME eq Soundpad.exe" /F /T')
+  await waitForPipe()
 }
