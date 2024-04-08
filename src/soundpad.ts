@@ -1,8 +1,6 @@
 import net from 'net'
 import { XMLParser } from 'fast-xml-parser'
 
-const functionFilePath = './functions.js'
-
 const parser = new XMLParser({
   allowBooleanAttributes: true,
   attributesGroupName: '$',
@@ -103,8 +101,7 @@ class Soundpad extends EventTarget {
     dataDriver: (query: string) => Promise<string> = this.sendQuery
   ): Promise<boolean> {
     if (this.options.startSoundpadOnConnect) {
-      const fcts = await import(/* @vite-ignore */ functionFilePath)
-      await fcts.openSoundpad(true)
+      await this.openSoundpad()
     }
     return await new Promise((resolve, reject) => {
       if (dataDriver === this.sendQuery) {
@@ -130,7 +127,7 @@ class Soundpad extends EventTarget {
 
           if (this.options.autoReconnect) {
             if (this.options.startSoundpadOnConnect) {
-              await (await import(/* @vite-ignore */ functionFilePath)).openSoundpad(true)
+              await this.openSoundpad()
             }
             this.connectionAwaiter = new Promise((resolve) => {
               this.connectionResolveFunction = resolve
@@ -182,7 +179,7 @@ class Soundpad extends EventTarget {
     }
     if (this._pipe === null) {
       if (this.options.startSoundpadOnConnect) {
-        await (await import(/* @vite-ignore */ functionFilePath)).openSoundpad(true)
+        await this.openSoundpad()
       } else {
         throw new Error('Please connect the pipe before sending a message')
       }
@@ -808,6 +805,11 @@ class Soundpad extends EventTarget {
         }
       }, pollInterval)
     })
+  }
+
+  protected async openSoundpad (): Promise<void> {
+    // NOOP
+    return await Promise.resolve()
   }
 }
 

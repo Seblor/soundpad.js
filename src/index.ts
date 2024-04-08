@@ -1,4 +1,4 @@
-import Soundpad from './soundpad.js'
+import Soundpad from './soundpad.server.js'
 
 export default Soundpad
 
