@@ -199,6 +199,14 @@ class Soundpad extends EventTarget {
     const response = await this.sendQuery('GetSoundlist()')
     const parsed = parser.parse(response) as SPSoundlistResponse
 
+    if (parsed.Soundlist as unknown === '') { // If there are no sounds
+      return []
+    }
+
+    if (!Array.isArray(parsed.Soundlist.Sound)) { // If there is only one sound
+      return [(parsed.Soundlist.Sound as { $: Sound }).$]
+    }
+
     return parsed.Soundlist.Sound.map((sound) => sound.$)
   }
 
@@ -220,6 +228,15 @@ class Soundpad extends EventTarget {
       throw new Error(response)
     }
     const parsed = parser.parse(response) as SPCategoriesResponse
+
+    if (parsed.Categories as unknown === '') { // If there are no sounds
+      return []
+    }
+
+    if (!Array.isArray(parsed.Categories.Category)) { // If there is only one sound
+      const parsedUniqueCategory = JSON.parse(JSON.stringify(parsed.Categories.Category))
+      parsed.Categories.Category = [parsedUniqueCategory]
+    }
 
     return parsed.Categories.Category.map((category) => {
       const categoryData = category.$
