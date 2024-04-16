@@ -6,16 +6,18 @@
   "exports": {
     ".": {
       "types": "./lib/index.d.ts",
-      "require": "./lib/index.js"
+      "require": "./lib/index.js",
+      "import": "./lib/esm/index.js"
     },
-    "./web": {
+    "./lib/web": {
       "types": "./lib/web.d.ts",
-      "require": "./lib/web.js"
+      "require": "./lib/web.js",
+      "import": "./lib/esm/web.js"
     }
   },
   "types": "lib/index.d.ts",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc & tsc -p tsconfig.esm.json",
     "format": "prettier --write \"src/**/*.(js|ts)\"",
     "lint": "eslint src --ext .js,.ts",
     "lint:fix": "eslint src --fix --ext .js,.ts",
