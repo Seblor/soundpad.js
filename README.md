@@ -37,7 +37,7 @@ run()
 If you plan to use this package in the browser (with a custom dataDriver), you may get an error because some functions need Node's 'child_process' module. To fix this, you can import soundpad.js with the secondary entry point `soundpad.js/web` (which does not export those functions) like in this example:
 
 ```js
-import Soundpad from 'soundpad.js/web';
+import Soundpad from 'soundpad.js/lib/web';
 
 const soundpad = new Soundpad();
 
