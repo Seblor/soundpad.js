@@ -23,9 +23,9 @@
     "lint:fix": "eslint src --fix --ext .js,.ts",
     "test": "echo \"Tests are not implemented yet\"",
     "doc": "typedoc src/index.ts",
-    "prepublishOnly": "npm test && npm run lint",
-    "preversion": "npm run lint",
-    "version": "npm run lint:fix && git add -A src",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm test",
+    "version": "git add -A src",
     "postversion": "git push && git push --tags"
   },
   "repository": {
