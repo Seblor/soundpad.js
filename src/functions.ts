@@ -1,5 +1,6 @@
 import net from 'net'
 import { exec, execSync } from 'child_process'
+import iconv from 'iconv-lite';
 
 /**
  * Get the path of the soundpad exe file or null if it could not be found
@@ -10,10 +11,10 @@ export function getSoundpadPath (): string | null {
 
   try {
     // Returns multiple lines including the path: `    (Default)    REG_SZ    "C:\Program Files\Soundpad\Soundpad.exe" -c "%1"`
-    const result = execSync(
-      'REG QUERY HKEY_CLASSES_ROOT\\Soundpad\\shell\\open\\command',
+    const result = iconv.decode(execSync(
+      'cmd /c chcp.com 65001>nul && REG QUERY HKEY_CLASSES_ROOT\\Soundpad\\shell\\open\\command',
       { stdio: ['ignore', 'pipe', 'ignore'] } // Ignoring stdin and stdout
-    ).toString()
+    ), 'utf-8')
     const match = result.match(/"(.*soundpad.exe)"/i) // Get the path (without the quotes)
     if (match == null) throw new Error('Could not find Soundpad path')
     return match[1]
