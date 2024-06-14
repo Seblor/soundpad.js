@@ -15,7 +15,7 @@ export function getSoundpadPath (): string | null {
       'cmd /c chcp.com 65001>nul && REG QUERY HKEY_CLASSES_ROOT\\Soundpad\\shell\\open\\command',
       { stdio: ['ignore', 'pipe', 'ignore'] } // Ignoring stdin and stdout
     ), 'utf-8')
-    const match = result.match(/"(.*soundpad.exe)"/i) // Get the path (without the quotes)
+    const match = RegExp(/"(.*soundpad.exe)"/i).exec(result) // Get the path (without the quotes)
     if (match == null) throw new Error('Could not find Soundpad path')
     return match[1]
   } catch (error) {
@@ -25,7 +25,13 @@ export function getSoundpadPath (): string | null {
 
 export async function openSoundpad (checkBeforeOpen = false): Promise<void> {
   if (checkBeforeOpen && await isSoundpadOpened(false)) return
-  exec(`"${getSoundpadPath()}"`)
+  const soundpadPath = getSoundpadPath()
+  if (soundpadPath == null) throw new Error('Could not find Soundpad path')
+  if (soundpadPath.includes('steamapps')) {
+    exec(`start steam://run/629520`)
+  } else {
+    exec(`"${getSoundpadPath()}"`)
+  }
   await waitForPipe()
 }
 

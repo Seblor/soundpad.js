@@ -207,7 +207,7 @@ class Soundpad extends EventTarget {
       return [(parsed.Soundlist.Sound as { $: Sound }).$]
     }
 
-    return parsed.Soundlist.Sound.map((sound) => sound.$)
+    return fixSoundsName(parsed.Soundlist.Sound.map((sound) => sound.$))
   }
 
   /**
@@ -240,10 +240,11 @@ class Soundpad extends EventTarget {
 
     return parsed.Categories.Category.map((category) => {
       const categoryData = category.$
+      categoryData.name = String(categoryData.name)
       if (withSounds) {
         if (category.Sound !== undefined) {
           const soundsArray = Array.isArray(category.Sound) ? category.Sound : [category.Sound] // If there is only one sound, it's not an array
-          categoryData.sounds = soundsArray.map((sound) => sound.$)
+          categoryData.sounds = fixSoundsName(soundsArray.map((sound) => sound.$))
         }
       }
       return categoryData
@@ -276,10 +277,12 @@ class Soundpad extends EventTarget {
       ...parsed.Categories.Category[0].$
     }
 
+    returnedObject.name = String(returnedObject.name)
+
     if (withSounds && parsed.Categories.Category[0].Sound !== undefined) {
       return {
         ...returnedObject,
-        sounds: parsed.Categories.Category[0].Sound?.map((sound) => sound.$) ?? []
+        sounds: fixSoundsName(parsed.Categories.Category[0].Sound?.map((sound) => sound.$) ?? [])
       }
     }
 
@@ -800,6 +803,54 @@ class Soundpad extends EventTarget {
     )
   }
 
+  //***********************************************************************//
+  //
+  // Remote Control v1.1.2
+  //
+  //***********************************************************************//
+
+  /**
+   * Let Soundpad play a random sound from any category.
+   *
+   * @param renderLine set to true to play on speakers so you hear it.
+   * @param captureLine set to true to play on microphone so others hear it.
+   * @return true on success
+   */
+  public async playRandomSound (renderLine: boolean, captureLine: boolean): Promise<boolean> {
+    return await this.isSuccess(
+      this.sendQuery(
+        `DoPlayRandomSound(${renderLine}, ${captureLine})`
+      )
+    )
+  }
+
+  /**
+   * Let Soundpad play a random sound from a particular category.
+   *
+   * @param categoryIndex set to -1 to play a random sound from the currently selected category or use {@link #getCategories(boolean, boolean)} to find the index of a category.
+   * @param renderLine set to true to play on speakers so you hear it.
+   * @param captureLine set to true to play on microphone so others hear it.
+   * @return true on success
+   */
+  public async playRandomSoundFromCategory (categoryIndex: number, renderLine: boolean, captureLine: boolean): Promise<boolean> {
+    return await this.isSuccess(
+      this.sendQuery(
+        `DoPlayRandomSoundFromCategory(${categoryIndex}, ${renderLine}, ${captureLine})`
+      )
+    );
+  }
+
+  /**
+   * @return true if the client is using the trial version, false if it is the full version or null if undermined.
+   */
+  public async isTrial (): Promise<boolean | null> {
+    const response = await this.sendQuery("IsTrial()");
+    if (response.trim() === "") {
+      return null;
+    }
+    return parseInt(response) == 1;
+  }
+
   /**
    * =========== PORTING END ===========
    */
@@ -828,6 +879,18 @@ class Soundpad extends EventTarget {
     // NOOP
     return await Promise.resolve()
   }
+}
+
+/**
+ * Fixed when shounds titles only have digits (fast-xml-parser converts them to numbers instead of strings)
+ * @param sounds
+ * @returns
+ */
+function fixSoundsName (sounds: Sound[]): Sound[] {
+  return sounds.map((sound) => {
+    sound.title = String(sound.title)
+    return sound
+  })
 }
 
 // const soundpad = new Soundpad()
