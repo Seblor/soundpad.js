@@ -46,17 +46,21 @@ export interface Category {
   hidden?: boolean
   sounds?: Sound[]
   icon?: string
+  subCategories?: Category[]
 }
 
 // Soundpad's native response to categories query (after XML -> JS conversion)
+interface SPCategoryResponse {
+  $: Category
+  Category?: Array<SPCategoryResponse> | SPCategoryResponse
+  Sound: Array<{
+    $: Sound
+  }>
+}
+
 interface SPCategoriesResponse {
   Categories: {
-    Category: Array<{
-      $: Category
-      Sound: Array<{
-        $: Sound
-      }>
-    }>
+    Category: Array<SPCategoryResponse>
   }
 }
 
@@ -80,7 +84,7 @@ class Soundpad extends EventTarget {
 
   isConnected: boolean
 
-  constructor (options: Partial<Options> = { autoReconnect: false, startSoundpadOnConnect: false }) {
+  constructor(options: Partial<Options> = { autoReconnect: false, startSoundpadOnConnect: false }) {
     super()
     this.isConnected = false
 
@@ -238,17 +242,23 @@ class Soundpad extends EventTarget {
       parsed.Categories.Category = [parsedUniqueCategory]
     }
 
-    return parsed.Categories.Category.map((category) => {
-      const categoryData = category.$
+    function handleCategory (xmlParsedCategory: SPCategoryResponse): Category {
+      const categoryData = xmlParsedCategory.$
       categoryData.name = String(categoryData.name)
+      categoryData.subCategories = []
       if (withSounds) {
-        if (category.Sound !== undefined) {
-          const soundsArray = Array.isArray(category.Sound) ? category.Sound : [category.Sound] // If there is only one sound, it's not an array
+        if (xmlParsedCategory.Sound !== undefined) {
+          const soundsArray = Array.isArray(xmlParsedCategory.Sound) ? xmlParsedCategory.Sound : [xmlParsedCategory.Sound] // If there is only one sound, it's not an array
           categoryData.sounds = fixSoundsName(soundsArray.map((sound) => sound.$))
         }
       }
+      if (xmlParsedCategory.Category !== undefined) {
+        categoryData.subCategories = Array.isArray(xmlParsedCategory.Category) ? xmlParsedCategory.Category.map(handleCategory) : [handleCategory(xmlParsedCategory.Category)]
+      }
       return categoryData
-    })
+    }
+
+    return parsed.Categories.Category.map(handleCategory)
   }
 
   /**
