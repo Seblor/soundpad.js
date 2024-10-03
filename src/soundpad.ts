@@ -109,7 +109,7 @@ class Soundpad extends EventTarget {
     }
     return await new Promise((resolve, reject) => {
       if (dataDriver === this.sendQuery) {
-        this._pipe = net.createConnection('//./pipe/sp_remote_control', () => {
+        this._pipe = net.connect('\\\\.\\pipe\\sp_remote_control', () => {
           this.isConnected = true
           this.connectionResolveFunction(true)
           this.dispatchEvent(new Event('connected'))
