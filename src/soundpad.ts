@@ -25,6 +25,8 @@ export interface Sound {
   title: string
   duration: string
   addedOn: string
+  color?: string
+  tag: string
   lastPlayedOn: string
   playCount: number
 }
