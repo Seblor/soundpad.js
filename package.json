@@ -1,6 +1,6 @@
 {
   "name": "soundpad.js",
-  "version": "2.6.0",
+  "version": "2.6.1",
   "description": "An npm package for interacting with Soundpad.",
   "main": "lib/index.js",
   "exports": {
