@@ -1,4 +1,4 @@
-import net from "net";
+import net from "node:net";
 import { XMLParser } from "fast-xml-parser";
 
 const parser = new XMLParser({
@@ -120,13 +120,26 @@ class Soundpad extends EventTarget {
 		}
 		return await new Promise((resolve, reject) => {
 			if (dataDriver === this.sendQuery) {
-				this._pipe = net.connect("\\\\.\\pipe\\sp_remote_control", () => {
-					this.isConnected = true;
-					this.connectionResolveFunction(true);
-					this.dispatchEvent(new Event("connected"));
+				this._pipe = net.connect(
+					{
+						path: "\\\\.\\pipe\\sp_remote_control",
+						onread: {
+							// Increasing buffer size since NodeJS does not read more than 65536 bytes with NodeJS, though Bun does not have that issue (fixes https://github.com/Seblor/soundpad.js/issues/2)
+							buffer: Buffer.alloc(10 * 1024 * 1024), // 10MB buffer
+							callback: (bytesWritten: number, buf: Uint8Array): boolean => {
+								this._pipe?.emit("data", buf.slice(0, bytesWritten));
+								return true;
+							},
+						},
+					},
+					() => {
+						this.isConnected = true;
+						this.connectionResolveFunction(true);
+						this.dispatchEvent(new Event("connected"));
 
-					resolve(true);
-				});
+						resolve(true);
+					},
+				);
 
 				this._pipe.on("error", (error) => {
 					this._pipe = null;
@@ -430,9 +443,7 @@ class Soundpad extends EventTarget {
 	 * @param {string} searchTerm
 	 */
 	public async search(searchTerm: string): Promise<boolean> {
-		const response: string = await this.sendQuery(
-			'DoSearch("' + searchTerm + '")',
-		);
+		const response: string = await this.sendQuery(`DoSearch("${searchTerm}")`);
 		if (response !== "R-200") {
 			console.error(response);
 			return false;
@@ -494,35 +505,44 @@ class Soundpad extends EventTarget {
 	 * currently selected category.
 	 */
 	public async getSoundFileCount(): Promise<number> {
-		return Number.parseInt(await this.sendQuery("GetSoundFileCount()"));
+		return Number.parseInt(await this.sendQuery("GetSoundFileCount()"), 10);
 	}
 
 	/**
 	 * Returns playback position of currently played sound file in milliseconds.
 	 */
 	public async getPlaybackPosition(): Promise<number> {
-		return Number.parseInt(await this.sendQuery("GetPlaybackPositionInMs()"));
+		return Number.parseInt(
+			await this.sendQuery("GetPlaybackPositionInMs()"),
+			10,
+		);
 	}
 
 	/**
 	 * Returns duration of currently played sound file in milliseconds.
 	 */
 	public async getPlaybackDuration(): Promise<number> {
-		return Number.parseInt(await this.sendQuery("GetPlaybackDurationInMs()"));
+		return Number.parseInt(
+			await this.sendQuery("GetPlaybackDurationInMs()"),
+			10,
+		);
 	}
 
 	/**
 	 * Returns recording position in milliseconds.
 	 */
 	public async getRecordingPosition(): Promise<number> {
-		return Number.parseInt(await this.sendQuery("GetRecordingPositionInMs()"));
+		return Number.parseInt(
+			await this.sendQuery("GetRecordingPositionInMs()"),
+			10,
+		);
 	}
 
 	/**
 	 * Returns current recording peak.
 	 */
 	public async getRecordingPeak(): Promise<number> {
-		return Number.parseInt(await this.sendQuery("GetRecordingPeak()"));
+		return Number.parseInt(await this.sendQuery("GetRecordingPeak()"), 10);
 	}
 
 	/**
@@ -655,7 +675,7 @@ class Soundpad extends EventTarget {
 	 */
 	public async getVolume(): Promise<number> {
 		const response: string = await this.sendQuery("GetVolume()");
-		return Number.parseInt(response);
+		return Number.parseInt(response, 10);
 	}
 
 	/**
@@ -663,7 +683,7 @@ class Soundpad extends EventTarget {
 	 */
 	public async isMuted(): Promise<boolean> {
 		const response: string = await this.sendQuery("IsMuted()");
-		return Number.parseInt(response) === 1;
+		return Number.parseInt(response, 10) === 1;
 	}
 
 	/**
@@ -888,7 +908,7 @@ class Soundpad extends EventTarget {
 		if (response.trim() === "") {
 			return null;
 		}
-		return Number.parseInt(response) == 1;
+		return Number.parseInt(response, 10) === 1;
 	}
 
 	/**
